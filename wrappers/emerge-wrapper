@@ -87,6 +87,19 @@ cross_wrap_etc()
 		-e "s:__CBUILD__:${CBUILD}:g" \
 		"${confs[@]}"
 
+	if [[ "${LLVM}" == "yes" ]] ; then
+		cat <<EOF >>${SYSROOT}/etc/portage/profile/make.defaults
+export CC="clang --config /etc/clang/cross/${CHOST}.cfg"
+export CXX="clang++ --config /etc/clang/cross/${CHOST}.cfg"
+export AR="llvm-ar"
+export NM="llvm-nm"
+export RANLIB="llvm-ranlib"
+export OBJCOPY="llvm-objcopy"
+export READELF="llvm-readelf"
+export STRIP="llvm-strip"
+EOF
+	fi
+
 	return 0
 }
 
