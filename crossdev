@@ -53,15 +53,16 @@ Options:
     ${GOOD}--g, --gcc${NORMAL} ver           Specify version of gcc to use
     ${GOOD}--k, --kernel${NORMAL} ver        Specify version of kernel headers to use
     ${GOOD}--l, --libc${NORMAL} ver          Specify version of libc to use
+    ${GOOD}--r, --runtime${NORMAL} ver       Specify version of LLVM compiler runtime to use
                                 Note: versions support depend atom syntaxes:
                                  e.g. ">=2.20" "~4.6.1" "=2.13.1-r3"
     ${GOOD}-A, --abis${NORMAL} abis          Specify ABIs to build, first one is the default
     ${GOOD}--host-abi abi${NORMAL}           Specify the ABI of the compiler itself
     ${GOOD}--env${NORMAL} env                Specify env settings for all packages (see below)
-    ${GOOD}--[bdgkl]env${NORMAL} env         Specify env settings for binutils/gdb/gcc/kernel/libc
+    ${GOOD}--[bdgklr]env${NORMAL} env         Specify env settings for binutils/gdb/gcc/kernel/libc/runtime
                                 Note: make sure to quote: 'VAR="some value"\nFOO="cow"'
-    ${GOOD}--[bdgkl]cat${NORMAL} category    Use binutils/gdb/gcc/kernel/libc package from category
-    ${GOOD}--[bdgkl]pkg${NORMAL} pkg         Use binutils/gdb/gcc/kernel/libc package with given name
+    ${GOOD}--[bdgklr]cat${NORMAL} category    Use binutils/gdb/gcc/kernel/libc/runtime package from category
+    ${GOOD}--[bdgklr]pkg${NORMAL} pkg         Use binutils/gdb/gcc/kernel/libc/runtime package with given name
     ${GOOD}-f, --force${NORMAL}              I don't need a seat belt!
     ${GOOD}-S, --stable${NORMAL}             Use latest stable versions as default
     ${GOOD}-C, --clean${NORMAL} target       Uninstall specified target
@@ -82,6 +83,7 @@ Overlay Options:
     ${GOOD}-og, --ov-gcc${NORMAL} path       Overlay for gcc ebuilds [default: search]
     ${GOOD}-ok, --ov-kernel${NORMAL} path    Overlay for kernel ebuilds [default: search]
     ${GOOD}-ol, --ov-libc${NORMAL} path      Overlay for C library ebuilds [default: search]
+    ${GOOD}-or, --ov-runtime${NORMAL} path   Overlay for LLVM compiler runtime ebuilds [default: search]
     ${GOOD}-ox, --ov-extra${NORMAL} path     Overlay for extra packages [default: search]
 
 Stage Options:
@@ -908,6 +910,11 @@ while [[ $# -gt 0 ]] ; do
 	-ol|--ov-libc)     shift; LOVL=$1;;
 	--lcat)            shift; LCAT=$1;;
 	--lpkg)            shift; LPKG=$1;;
+	--r|--runtime)     shift; RVER=$1;;
+	--renv)            shift; RENV=$1;;
+	-or|--ov-runtime)  shift; ROVL=$1;;
+	--rcat)            shift; RCAT=$1;;
+	--rpkg)            shift; RPKG=$1;;
 	-ox|--ov-extra)    shift; XOVLS+=( "$1" );;
 	--env)             shift; AENV=$1;;
 	-L|--llvm)         LLVM="yes";;
@@ -955,6 +962,7 @@ GVER=${GVER:-${DEFAULT_VER}}
 KVER=${KVER:-${DEFAULT_VER}}
 LVER=${LVER:-${DEFAULT_VER}}
 DVER=${DVER:-${DEFAULT_VER}}
+RVER=${RVER:-${DEFAULT_VER}}
 STAGE=${STAGE:-${STAGE_DEFAULT}}
 [[ -z ${CTARGET} ]] && usage 1
 for with in HEADERS ; do
@@ -971,8 +979,6 @@ if [[ ${LPKG} == "newlib" && ${LVER} == "[stable]" ]]; then
 	LVER="[latest]"
 fi
 
-RVER="[latest]"
-
 show_target_cfg() {
 	local pkgs crosspkgs=()
 
@@ -981,6 +987,7 @@ show_target_cfg() {
 		gcc G
 		kernel K
 		libc L
+		runtime R
 	)
 	ex_gdb && pkgs+=( gdb D )
 
@@ -1327,7 +1334,7 @@ set_env() {
 	# the host.
 	local TARGET_ABI=$(set -- ${MULTILIB_ABIS}; echo $1)
 	case ${l} in
-	K|L)
+	K|L|R)
 		# Target packages.
 		local ABI=${TARGET_ABI}
 		# Use MULTILIB_ABIS & DEFAULT_ABI from env.
@@ -1411,7 +1418,7 @@ set_metadata() {
 	fi
 
 	# build up a list of possible repos where we can pull from
-	for d in "${BOVL}" "${GOVL}" "${KOVL}" "${LOVL}" "${DOVL}" ${SEARCH_OVERLAYS} "${MAIN_REPO_PATH}" ; do
+	for d in "${BOVL}" "${GOVL}" "${KOVL}" "${LOVL}" "${DOVL}" "${ROVL}" ${SEARCH_OVERLAYS} "${MAIN_REPO_PATH}" ; do
 		[[ -z ${d} ]] && continue
 
 		name=
