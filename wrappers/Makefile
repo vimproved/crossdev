@@ -3,7 +3,7 @@
 
 include ../settings.mk
 
-FNAMES = cross-ebuild cross-emerge cross-fix-root cross-pkg-config emerge-wrapper
+FNAMES = clang-wrapper cross-clang cross-ebuild cross-emerge cross-fix-root cross-pkg-config emerge-wrapper
 SITEDIR = $(PREFIX)/share/crossdev/include/site
 ETC_SITEDIR = $(EPREFIX)/etc/crossdev/include/site
 

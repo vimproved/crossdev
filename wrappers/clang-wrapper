@@ -1,0 +1,4 @@
+#!/bin/sh
+CHOST="${1}"
+ln -s cross-clang "/usr/bin/${CHOST}-clang"
+ln -s cross-clang "/usr/bin/${CHOST}-clang++"

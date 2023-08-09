@@ -1,0 +1,5 @@
+#!/bin/sh
+CHOST="${0##*/}"
+CHOST="${CHOST%-*}"
+exe="${0##*-}"
+${exe} --config="/etc/clang/cross/${CHOST}.cfg" ${@}

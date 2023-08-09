@@ -1569,6 +1569,7 @@ hr
 
 xmkdir -p "${EPREFIX}"/usr/${CTARGET}
 LLVM="${LLVM}" emerge-wrapper --target ${CTARGET} --init || exit 1
+clang-wrapper ${CTARGET} || exit 1
 
 #############################################################
 ### Create directories usually created by sys-apps/baselayout
