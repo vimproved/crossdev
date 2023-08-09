@@ -53,16 +53,16 @@ Options:
     ${GOOD}--g, --gcc${NORMAL} ver           Specify version of gcc to use
     ${GOOD}--k, --kernel${NORMAL} ver        Specify version of kernel headers to use
     ${GOOD}--l, --libc${NORMAL} ver          Specify version of libc to use
-    ${GOOD}--llvmver${NORMAL} ver            Specify version of LLVM components to use
+    ${GOOD}--r, --runtime${NORMAL} ver       Specify version of LLVM compiler runtime to use
                                 Note: versions support depend atom syntaxes:
                                  e.g. ">=2.20" "~4.6.1" "=2.13.1-r3"
     ${GOOD}-A, --abis${NORMAL} abis          Specify ABIs to build, first one is the default
     ${GOOD}--host-abi abi${NORMAL}           Specify the ABI of the compiler itself
     ${GOOD}--env${NORMAL} env                Specify env settings for all packages (see below)
-    ${GOOD}--[bdgklruac]env${NORMAL} env        Specify env settings for binutils/gdb/gcc/kernel/libc/runtime/libunwind/libcxxabi/libcxx
+    ${GOOD}--[bdgklr]env${NORMAL} env         Specify env settings for binutils/gdb/gcc/kernel/libc/runtime
                                 Note: make sure to quote: 'VAR="some value"\nFOO="cow"'
-    ${GOOD}--[bdgklruac]cat${NORMAL} category   Use binutils/gdb/gcc/kernel/libc/runtime/libunwind/libcxxabi/libcxx package from category
-    ${GOOD}--[bdgklruac]pkg${NORMAL} pkg        Use binutils/gdb/gcc/kernel/libc/runtime/libunwind/libcxxabi/libcxx package with given name
+    ${GOOD}--[bdgklr]cat${NORMAL} category    Use binutils/gdb/gcc/kernel/libc/runtime package from category
+    ${GOOD}--[bdgklr]pkg${NORMAL} pkg         Use binutils/gdb/gcc/kernel/libc/runtime package with given name
     ${GOOD}-f, --force${NORMAL}              I don't need a seat belt!
     ${GOOD}-S, --stable${NORMAL}             Use latest stable versions as default
     ${GOOD}-C, --clean${NORMAL} target       Uninstall specified target
@@ -85,9 +85,6 @@ Overlay Options:
     ${GOOD}-ok, --ov-kernel${NORMAL} path    Overlay for kernel ebuilds [default: search]
     ${GOOD}-ol, --ov-libc${NORMAL} path      Overlay for C library ebuilds [default: search]
     ${GOOD}-or, --ov-runtime${NORMAL} path   Overlay for LLVM compiler runtime ebuilds [default: search]
-    ${GOOD}-ou, --ov-libunwind${NORMAL} path Overlay for LLVM libunwind ebuilds [default: search]
-    ${GOOD}-oa, --ov-libcxxabi${NORMAL} path Overlay for LLVM libc++abi ebuilds [default: search]
-    ${GOOD}-oc, --ov-libcxx${NORMAL} path    Overlay for LLVM libc++abi ebuilds [default: search]
     ${GOOD}-ox, --ov-extra${NORMAL} path     Overlay for extra packages [default: search]
 
 Stage Options:
@@ -839,17 +836,14 @@ MULTILIB_ABIS="default"
 MULTILIB_USE=""
 HOST_ABI="default"
 STAGE=""
-ALLENV=""
+AENV=""
 # Only GMASK/GFORCE are currently used
-BCAT="sys-devel"  ; BPKG="binutils"       ; BVER="" BUSE="" BENV="" BOVL="" BMASK="" BFORCE=""
-GCAT="sys-devel"  ; GPKG="gcc"            ; GVER="" GUSE="" GENV="" GOVL="" GMASK="" GFORCE=""
-KCAT="sys-kernel" ; KPKG="linux-headers"  ; KVER="" KUSE="" KENV="" KOVL="" KMASK="" KFORCE=""
-LCAT="sys-libs"   ; LPKG="[none]"         ; LVER="" LUSE="" LENV="" LOVL="" LMASK="" LFORCE=""
-DCAT="sys-devel"  ; DPKG="gdb"            ; DVER="" DUSE="" DENV="" DOVL="" DMASK="" DFORCE=""
-RCAT="sys-libs"   ; RPKG="compiler-rt"    ; RVER="" RUSE="" RENV="" ROVL="" RMASK="" RFORCE=""
-UCAT="sys-libs"   ; UPKG="llvm-libunwind" ; UVER="" UUSE="" UENV="" UOVL="" UMASK="" UFORCE=""
-ACAT="sys-libs"   ; APKG="libcxxabi"      ; AVER="" AUSE="" AENV="" AOVL="" AMASK="" AFORCE=""
-CCAT="sys-libs"   ; CPKG="libcxx"         ; CVER="" CUSE="" CENV="" COVL="" CMASK="" CFORCE=""
+BCAT="sys-devel"  ; BPKG="binutils"      ; BVER="" BUSE="" BENV="" BOVL="" BMASK="" BFORCE=""
+GCAT="sys-devel"  ; GPKG="gcc"           ; GVER="" GUSE="" GENV="" GOVL="" GMASK="" GFORCE=""
+KCAT="sys-kernel" ; KPKG="linux-headers" ; KVER="" KUSE="" KENV="" KOVL="" KMASK="" KFORCE=""
+LCAT="sys-libs"   ; LPKG="[none]"        ; LVER="" LUSE="" LENV="" LOVL="" LMASK="" LFORCE=""
+DCAT="sys-devel"  ; DPKG="gdb"           ; DVER="" DUSE="" DENV="" DOVL="" DMASK="" DFORCE=""
+RCAT="sys-libs"   ; RPKG="compiler-rt"   ; RVER="" RUSE="" RENV="" ROVL="" RMASK="" RFORCE=""
 XPKGS=() XVERS=() XUSES=() XENVS=() XOVLS=() XMASKS=() XFORCES=()
 DEFAULT_VER="[latest]"
 SEARCH_OVERLAYS=""
@@ -918,25 +912,13 @@ while [[ $# -gt 0 ]] ; do
 	-ol|--ov-libc)     shift; LOVL=$1;;
 	--lcat)            shift; LCAT=$1;;
 	--lpkg)            shift; LPKG=$1;;
-	--llvmver)         shift; LLVMVER=$1;;
+	--r|--runtime)     shift; RVER=$1;;
 	--renv)            shift; RENV=$1;;
 	-or|--ov-runtime)  shift; ROVL=$1;;
 	--rcat)            shift; RCAT=$1;;
 	--rpkg)            shift; RPKG=$1;;
-	--uenv)            shift; UENV=$1;;
-	-ou|--ov-libunwind)shift; UOVL=$1;;
-	--ucat)            shift; UCAT=$1;;
-	--upkg)            shift; UPKG=$1;;
-	--aenv)            shift; AENV=$1;;
-	-oa|--ov-libcxxabi)shift; AOVL=$1;;
-	--acat)            shift; ACAT=$1;;
-	--apkg)            shift; APKG=$1;;
-	--cenv)            shift; CENV=$1;;
-	-oc|--ov-libcxx)   shift; COVL=$1;;
-	--ccat)            shift; CCAT=$1;;
-	--cpkg)            shift; CPKG=$1;;
 	-ox|--ov-extra)    shift; XOVLS+=( "$1" );;
-	--env)             shift; ALLENV=$1;;
+	--env)             shift; AENV=$1;;
 	-L|--llvm)         LLVM="yes";;
 	-A|--abis)         shift; MULTILIB_ABIS=$1;;
 	--host-abi)        shift; HOST_ABI=$1;;
@@ -983,10 +965,7 @@ GVER=${GVER:-${DEFAULT_VER}}
 KVER=${KVER:-${DEFAULT_VER}}
 LVER=${LVER:-${DEFAULT_VER}}
 DVER=${DVER:-${DEFAULT_VER}}
-RVER=${LLVMVER:-${DEFAULT_VER}}
-UVER=${LLVMVER:-${DEFAULT_VER}}
-AVER=${LLVMVER:-${DEFAULT_VER}}
-CVER=${LLVMVER:-${DEFAULT_VER}}
+RVER=${RVER:-${DEFAULT_VER}}
 STAGE=${STAGE:-${STAGE_DEFAULT}}
 [[ -z ${CTARGET} ]] && usage 1
 for with in HEADERS ; do
@@ -1011,6 +990,7 @@ show_target_cfg() {
 		gcc G
 		kernel K
 		libc L
+		runtime R
 	)
 	ex_gdb && pkgs+=( gdb D )
 
@@ -1074,7 +1054,7 @@ done
 
 # grab user settings
 d="${CONFIGROOT}/crossdev/${CTARGET}"
-for v in MULTILIB_ABIS USE BVER GVER KVER LVER DVER RVER UVER AVER CVER STAGE CFLAGS LDFLAGS ASFLAGS ; do
+for v in MULTILIB_ABIS USE BVER GVER KVER LVER DVER STAGE CFLAGS LDFLAGS ASFLAGS ; do
 	if [[ -e ${d}/${v} ]] ; then
 		# yes, quotes are needed in this instance (export $var="...")
 		export ${v}="$(<"${d}"/${v})"
@@ -1181,9 +1161,6 @@ is_s0 && {
 is_s1 && {
     if [[ "${LLVM}" == "yes" ]] ; then
         einfo "compiler-rt:           `pretty_atom ${RPKG}- ${RVER}`"
-        einfo "llvm-libunwind:        `pretty_atom ${UPKG}- ${UVER}`"
-        einfo "libc++abi:             `pretty_atom ${APKG}- ${AVER}`"
-        einfo "libc++:                `pretty_atom ${CPKG}- ${CVER}`"
     else
         einfo "gcc:                   `pretty_atom ${GPKG}- ${GVER}`"
     fi
@@ -1444,7 +1421,7 @@ set_metadata() {
 	fi
 
 	# build up a list of possible repos where we can pull from
-	for d in "${BOVL}" "${GOVL}" "${KOVL}" "${LOVL}" "${DOVL}" "${ROVL}" "${UOVL}" "${AOVL}" "${COVL}" ${SEARCH_OVERLAYS} "${MAIN_REPO_PATH}" ; do
+	for d in "${BOVL}" "${GOVL}" "${KOVL}" "${LOVL}" "${DOVL}" "${ROVL}" ${SEARCH_OVERLAYS} "${MAIN_REPO_PATH}" ; do
 		[[ -z ${d} ]] && continue
 
 		name=
@@ -1544,7 +1521,7 @@ fi
 
 pkglist=( K L )
 if [[ ${LLVM} == "yes" ]] ; then
-    pkglist+=( R U A C )
+    pkglist+=( R )
 else
     pkglist+=( B G D )
 fi
@@ -1798,24 +1775,10 @@ if ! ex_fast ; then
 	fi
 
 	# stage4: full compiler (C/C++/etc...)
-	if is_s4 ; then
-		if [[ "${LLVM}" == "yes" ]] ; then
-			USE="${UUSE} ${USE}" \
-			CROSSCOMPILE_OPTS=""
-				doemerge ${UPKG}
-
-			USE="${AUSE} ${USE}" \
-			CROSSCOMPILE_OPTS=""
-				doemerge ${APKG}
-
-			USE="${CUSE} ${USE}" \
-			CROSSCOMPILE_OPTS=""
-				doemerge ${CPKG}
-		else
-			EOPTS="${EOPTS_UP} --newuse" \
-			USE="${GUSE} ${USE} ${GUSE_DISABLE_STAGE_2}" \
-				doemerge ${GPKG} ${GPKG}-stage2
-		fi
+	if is_s4 && [[ "${LLVM}" != "yes" ]] ; then
+		EOPTS="${EOPTS_UP} --newuse" \
+		USE="${GUSE} ${USE} ${GUSE_DISABLE_STAGE_2}" \
+			doemerge ${GPKG} ${GPKG}-stage2
 	fi
 fi
 
